@@ -28,6 +28,18 @@ module.exports = {
       }
     },
 
+    async getAreaPosts(_, thoughtArea) {
+      try {
+        const posts = await Post.find(thoughtArea).sort({ createdAt: -1 });
+        if (posts) {
+          return posts;
+        } else {
+          throw new Error('Post not found');
+        }
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
 
     async getPost(_, { postId }) {
       try {
@@ -55,7 +67,8 @@ module.exports = {
         body,
         user: user.id,
         username: user.username,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        thoughtArea : "default"
       });
 
       const post = await newPost.save();
@@ -66,6 +79,34 @@ module.exports = {
 
       return post;
     },
+    async createAreaPost(_, { body,thoughtArea },  context) {
+      const user = checkAuth(context);
+
+      //console.log("======createAreaPost.runned======");
+
+      if (body.trim() === '') {
+        throw new Error('Post body must not be empty');
+      }
+
+      const newPost = new Post({
+        body,
+        user: user.id,
+        username: user.username,
+        createdAt: new Date().toISOString(),
+        thoughtArea : thoughtArea
+      });
+
+      const post = await newPost.save();
+
+      context.pubsub.publish('NEW_POST', {
+        newPost: post
+      });
+
+      return post;
+    },
+
+
+
     async deletePost(_, { postId }, context) {
       const user = checkAuth(context);
 

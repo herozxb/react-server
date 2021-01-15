@@ -20,7 +20,9 @@ const postSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
     ref: 'users'
-  }
+  },
 });
+
+postSchema.add({ thoughtArea: String });
 
 module.exports = model('Post', postSchema);
